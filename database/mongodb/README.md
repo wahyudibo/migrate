@@ -13,6 +13,7 @@
 |------------|---------------------|-------------|
 | `x-migrations-collection` | `MigrationsCollection` | Name of the migrations collection |
 | `x-transaction-mode` | `TransactionMode` | If set to `true` wrap commands in [transaction](https://docs.mongodb.com/manual/core/transactions). Available only for replica set. Driver is using [strconv.ParseBool](https://golang.org/pkg/strconv/#ParseBool) for parsing|
+| `x-canonical-json-format` | `CanonicalJSONFormat` | Decide which [JSON format](https://docs.mongodb.com/manual/reference/mongodb-extended-json/) (`canonical` or `relaxed`) accepted when unmarshalling extended JSON. Default `true`. Driver is using [strconv.ParseBool](https://golang.org/pkg/strconv/#ParseBool) for parsing|
 | `dbname` | `DatabaseName` | The name of the database to connect to |
 | `user` | | The user to sign in as. Can be omitted |
 | `password` | | The user's password. Can be omitted | 

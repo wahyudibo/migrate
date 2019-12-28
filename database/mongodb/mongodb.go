@@ -19,7 +19,10 @@ func init() {
 	database.Register("mongodb", &Mongo{})
 }
 
-var DefaultMigrationsCollection = "schema_migrations"
+var (
+	DefaultMigrationsCollection = "schema_migrations"
+	DefaultCanonicalJSONFormat  = true
+)
 
 var (
 	ErrNoDatabaseName = fmt.Errorf("no database name")
@@ -37,6 +40,7 @@ type Config struct {
 	DatabaseName         string
 	MigrationsCollection string
 	TransactionMode      bool
+	CanonicalJSONFormat  bool
 }
 
 type versionInfo struct {
@@ -77,6 +81,10 @@ func (m *Mongo) Open(dsn string) (database.Driver, error) {
 
 	migrationsCollection := unknown.Get("x-migrations-collection")
 	transactionMode, _ := strconv.ParseBool(unknown.Get("x-transaction-mode"))
+	canonicalJSONFormat, err := strconv.ParseBool(unknown.Get("x-canonical-json-format"))
+	if err != nil {
+		canonicalJSONFormat = DefaultCanonicalJSONFormat
+	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(dsn))
 	if err != nil {
@@ -89,6 +97,7 @@ func (m *Mongo) Open(dsn string) (database.Driver, error) {
 		DatabaseName:         uri.Database,
 		MigrationsCollection: migrationsCollection,
 		TransactionMode:      transactionMode,
+		CanonicalJSONFormat:  canonicalJSONFormat,
 	})
 	if err != nil {
 		return nil, err
@@ -127,7 +136,7 @@ func (m *Mongo) Run(migration io.Reader) error {
 		return err
 	}
 	var cmds []bson.D
-	err = bson.UnmarshalExtJSON(migr, true, &cmds)
+	err = bson.UnmarshalExtJSON(migr, m.config.CanonicalJSONFormat, &cmds)
 	if err != nil {
 		return fmt.Errorf("unmarshaling json error: %s", err)
 	}
